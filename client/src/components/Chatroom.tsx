@@ -1,24 +1,52 @@
 import React, { useEffect, useState } from "react";
 import Card from "./Card";
 
+interface UserData {
+  id: string;
+  name: string;
+}
+
+interface Message {
+  key: string;
+  sender: string;
+  text: string;
+}
+
+interface UserLoginInfo {
+  sessionData: {
+    newConversation: () => Promise<any>;
+  };
+  token: string;
+  user: {
+    username: string;
+  };
+}
+
+interface ChatroomProps {
+  userLoginInfo: UserLoginInfo;
+}
+
 /**
  * Chatroom Component
  * @param {Object} userLoginInfo - User login information
  */
-function Chatroom({ userLoginInfo }) {
+function Chatroom({ userLoginInfo }: ChatroomProps) {
   // State to manage users, selected member, conversation data, messages, and input
-  const [users, setUsers] = useState([]);
-  const [member, setMember] = useState();
-  const [conversationData, setConversationData] = useState({});
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState(null);
+  const [users, setUsers] = useState<UserData[]>([]);
+  const [member, setMember] = useState<UserData | undefined>();
+  const [conversationData, setConversationData] = useState<any>({});
+  const [messages, setMessages] = useState<Message[]>([]);  
+  const [input, setInput] = useState<string | null>(null);
+  const [inputValue, setInputValue] = useState<string>('');
+  // ...
+
 
   /**
    * Function to create a new conversation
    * @param {Object} val - Selected user data
    * @param {Object} userLoginInfo - User login information
    */
-  const createConversation = async (val, userLoginInfo) => {
+  const createConversation = async (val: UserData, userLoginInfo: UserLoginInfo) => {
     setMessages([]);
     try {
       const conv = await userLoginInfo.sessionData.newConversation();
@@ -37,13 +65,12 @@ function Chatroom({ userLoginInfo }) {
 
   /**
    * Function to create a new member in the conversation
-   * @param {string} USER_ID - User ID
    * @param {string} conversationId - Conversation ID
    * @param {string} JWT - JSON Web Token
    */
-  const createMember = async (userId, conversationId, JWT) => {
+  const createMember = async (userId: string, conversationId: string, JWT: string) => {
     try {
-      const response = await fetch(
+      await fetch(
         `https://api.nexmo.com/v0.3/conversations/${conversationId}/members`,
         {
           method: "POST",
@@ -60,7 +87,6 @@ function Chatroom({ userLoginInfo }) {
           }),
         }
       );
-      const data = await response.json();
     } catch (error) {
       console.error("Error creating member:", error);
     }
@@ -71,8 +97,8 @@ function Chatroom({ userLoginInfo }) {
    * @param {Object} sender - Sender information
    * @param {Object} message - Incoming message
    */
-  const onMessage = (sender, message) => {
-    let newMessage = {
+  const onMessage = (sender: any, message: any) => {
+    let newMessage: Message = {
       key: message.id,
       sender: message._embedded.from_user.display_name,
       text: message.body.text,
@@ -80,29 +106,35 @@ function Chatroom({ userLoginInfo }) {
     setMessages((prevMessages) => [...prevMessages, newMessage]);
   };
 
-  /**
-   * Event handler for sending input
-   * @param {Object} evt - Event object
-   */
-  const sendInput = (evt) => {
-    conversationData.conversation.sendText(input).then(() => {
-      setInput(null);
-    });
-    evt.target.previousSibling.value = "";
-  };
+ /**
+ * Event handler for sending input
+ * @param {Object} evt - Event object
+ */
+const sendInput = (evt: React.MouseEvent<HTMLButtonElement>) => {
+  conversationData.conversation.sendText(input!).then(() => {
+    setInput(null);
+  });
+
+  const inputElement = evt.currentTarget.previousSibling as HTMLInputElement;
+  if (inputElement) {
+    inputElement.value = "";
+  }
+};
+
 
   /**
    * Creates a Card component for each user
    * @param {Object} val - User data
    * @returns {JSX.Element} - Card component
    */
-  const ncard = (val) => {
+  const ncard = (val: UserData): JSX.Element => {
     return (
       <Card
         username={val.name}
         onClick={() => {
           setMember(val);
         }}
+        key={val.id}
       />
     );
   };
@@ -114,7 +146,7 @@ function Chatroom({ userLoginInfo }) {
 
   // Effect to get the list of all users when the component mounts
   useEffect(() => {
-    getUsers();
+  getUsers();
   }, []);
 
   /**
@@ -122,7 +154,8 @@ function Chatroom({ userLoginInfo }) {
    */
   const getUsers = async () => {
     try {
-      const response = await fetch("/getUsers", {
+      // Make the fetch call directly without assigning it to a variable
+      await fetch("/getUsers", {
         method: "GET",
       })
         .then((results) => results.json())
@@ -133,6 +166,7 @@ function Chatroom({ userLoginInfo }) {
       console.error("Error in getUsers:", error);
     }
   };
+  
 
   // JSX structure for the Chatroom component
   return (
@@ -157,16 +191,21 @@ function Chatroom({ userLoginInfo }) {
                 ))}
               </div>
               <div className="inputcontainer flexrowcenteralign">
-                <input
-                  className="messageinput"
-                  onBlur={(evt) => setInput(evt.target.value)}
-                />
-                <button
-                  className="messagesendbutton flexrowcenteralign"
-                  onClick={(evt) => sendInput(evt)}
-                >
-                  Send
-                </button>
+              <input
+                className="messageinput"
+                value={inputValue}
+                onChange={(evt) => setInputValue(evt.target.value)}
+                onBlur={() => setInput(inputValue)}
+              />
+
+              <button
+                className="messagesendbutton flexrowcenteralign"
+                onClick={(evt) => sendInput(evt)}
+                disabled={!inputValue.trim()} // Disable if input is empty or contains only whitespaces
+              >
+                Send
+              </button>
+
               </div>
             </div>
           </>

@@ -1,19 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, FormEvent } from "react";
 
-/**
- * User Component
- * @param {Object} openChatUpdate - Function to update chat upon opening
- */
-const User = ({ openChatUpdate }) => {
+interface UserProps {
+  openChatUpdate: (user: any) => void;
+}
+
+const User: React.FC<UserProps> = ({ openChatUpdate }) => {
   // State for user data and error flag
-  const [user, setUser] = useState({});
+  const [user, setUser] = useState<{ username?: string; userId?: string }>({});
   const [err, setErr] = useState(false);
 
   /**
    * Function to create a new user in the Nexmo application
    * @param {string} userName - User name
    */
-  const createUser = async (userName) => {
+  const createUser = async (userName: string) => {
     try {
       const response = await fetch("/createUser", {
         method: "POST",
@@ -36,11 +36,11 @@ const User = ({ openChatUpdate }) => {
 
   /**
    * Event handler for form submission
-   * @param {Object} e - Event object
+   * @param {FormEvent} e - Event object
    */
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const userName = e.target[0].value;
+    const userName = (e.target as any)[0].value;
 
     // Update user state with the entered username
     setUser(() => ({

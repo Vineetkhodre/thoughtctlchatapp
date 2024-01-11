@@ -4,20 +4,31 @@ import "./App.scss";
 import User from "./components/User";
 import Chatroom from "./components/Chatroom";
 
-const App = () => {
+interface UserInfo {
+  token: string;
+  sessionData: any; 
+  user: any; 
+}
+
+const App: React.FC = () => {
   // State to manage the visibility of login/signup forms and the chatroom
-  const [show, setShow] = useState(false);
-  const [openConv, setOpenConv] = useState(false);
-  const [userLoginInfo, setUserLoginInfo] = useState({});
+  const [show, setShow] = useState<string | boolean>(false);
+  const [openConv, setOpenConv] = useState<boolean>(false);
+  const [userLoginInfo, setUserLoginInfo] = useState<UserInfo>({
+    token: "",
+    sessionData: null, 
+    user: null,
+  });
 
   // Function to create a session for the user
   const login = async () => {
     try {
       // Create a Nexmo client instance and initialize a session
-      let nexmo = new nexmoClient({
+      let nexmo: any = new nexmoClient({
         debug: true,
         log_reporter: { enabled: true },
       });
+      
       const sessionData = await nexmo.createSession(userLoginInfo.token);
 
       // Update userLoginInfo with the sessionData
@@ -31,7 +42,7 @@ const App = () => {
   };
 
   // Function to get a JWT token
-  const getJWT = async (user) => {
+  const getJWT = async (user: { username: string }) => {
     try {
       const response = await fetch("/getJWT", {
         method: "POST",
@@ -43,7 +54,7 @@ const App = () => {
       // Update userLoginInfo with the JWT token
       setUserLoginInfo((prevState) => ({
         ...prevState,
-        token: data.jwt,
+        token: data.jwt!,
       }));
     } catch (error) {
       console.error("Error in getJWT:", error);
@@ -51,7 +62,7 @@ const App = () => {
   };
 
   // Function to open the chat when a user is selected
-  const openChat = (user) => {
+  const openChat = (user: any) => {
     setUserLoginInfo((prevState) => ({
       ...prevState,
       user: user,

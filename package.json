@@ -1,11 +1,14 @@
 {
   "dependencies": {
+    "@types/express": "^4.17.21",
     "@vonage/jwt": "^1.7.0",
     "@vonage/server-sdk": "^2.12.0-beta.3",
     "body-parser": "^1.20.2",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
-    "nexmo": "^2.7.0-beta-1"
+    "nexmo": "^2.7.0-beta-1",
+    "ts-node": "^10.9.2",
+    "typescript": "^4.9.5"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
@@ -13,7 +16,7 @@
   },
   "scripts": {
     "client": "cd client && npm start",
-    "server": "node server.js",
+    "server": "ts-node server.tsx",
     "start": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\""
   }
 }
